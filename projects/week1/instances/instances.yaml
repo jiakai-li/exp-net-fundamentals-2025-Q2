@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: NetworkBootcamp - Lab instances
+
+Parameters:
+  Project:
+    Type: String
+  WindowsInstanceAmi:
+    Type: String
+  WindowsInstanceType:
+    Type: String
+  UbuntuInstanceAmi:
+    Type: String
+  UbuntuInstanceType:
+    Type: String
+  MyIpCidr:
+    Type: String
+  VpcId:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NetworkBootcamp/network/vpc/id
+  PrivateSubnetId:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NetworkBootcamp/network/private/subnet/id
+  PrivateSubnetCidr:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NetworkBootcamp/network/private/subnet/cidr
+  PublicSubnetId:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NetworkBootcamp/network/public/subnet/id
+  PublicSubnetCidr:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NetworkBootcamp/network/public/subnet/cidr
+
+Resources:
+  PemKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyFormat: pem
+      KeyName: !Sub ${Project}-pem
+      KeyType: rsa
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/PemKey
+  
+  SecurityGroupGeneral:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub /${Project}/general
+      GroupDescription: A general security group for the project
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - CidrIp: !Ref MyIpCidr
+          Description: Allow RDP connection from my ip
+          IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+        - CidrIp: !Ref MyIpCidr
+          Description: Allow SSH connection from my ip
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: !Ref PrivateSubnetCidr
+          Description: Allow PrivateSubnet traffic
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/SecurityGroup/general
+
+  WindowsEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref WindowsInstanceAmi
+      InstanceType: !Ref WindowsInstanceType
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs
+          Ref: AWS::Region
+      KeyName: !Ref PemKeyPair
+      NetworkInterfaces:
+        - DeleteOnTermination: true
+          AssociatePublicIpAddress: true
+          DeviceIndex: "0"
+          SubnetId: !Ref PublicSubnetId
+          GroupSet:
+            - !Ref SecurityGroupGeneral
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/WindowsInstance
+
+  WindowsPrivateNic:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      GroupSet:
+        - !Ref SecurityGroupGeneral
+      SubnetId: !Ref PrivateSubnetId
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/Nic/WindowsInstancePrivate
+  
+  WindowsPrivateNicAttachment:
+    Type: AWS::EC2::NetworkInterfaceAttachment
+    Properties:
+      DeviceIndex: "1"
+      DeleteOnTermination: true
+      InstanceId: !Ref WindowsEc2Instance
+      NetworkInterfaceId: !Ref WindowsPrivateNic
+  
+  UbuntuEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref UbuntuInstanceAmi
+      InstanceType: !Ref UbuntuInstanceType
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs
+          Ref: AWS::Region
+      KeyName: !Ref PemKeyPair
+      NetworkInterfaces:
+        - DeleteOnTermination: true
+          AssociatePublicIpAddress: true
+          DeviceIndex: "0"
+          SubnetId: !Ref PublicSubnetId
+          GroupSet:
+            - !Ref SecurityGroupGeneral
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/UbuntuInstance
+
+  UbuntuPrivateNic:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      GroupSet:
+        - !Ref SecurityGroupGeneral
+      SubnetId: !Ref PrivateSubnetId
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/Nic/UbuntuInstancePrivate
+
+  UbuntuPrivateNicAttachment:
+    Type: AWS::EC2::NetworkInterfaceAttachment
+    Properties:
+      DeviceIndex: "1"
+      DeleteOnTermination: true
+      InstanceId: !Ref UbuntuEc2Instance
+      NetworkInterfaceId: !Ref UbuntuPrivateNic

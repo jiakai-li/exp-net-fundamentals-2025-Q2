@@ -1,0 +1,26 @@
+[
+    {
+        "ParameterKey": "Project",
+        "ParameterValue": "NetworkBootcamp"
+    },
+    {
+        "ParameterKey": "WindowsInstanceAmi",
+        "ParameterValue": "ami-0fa71268a899c2733"
+    },
+    {
+        "ParameterKey": "UbuntuInstanceAmi",
+        "ParameterValue": "ami-084568db4383264d4"
+    },
+    {
+        "ParameterKey": "WindowsInstanceType",
+        "ParameterValue": "t3.xlarge"
+    },
+    {
+        "ParameterKey": "UbuntuInstanceType",
+        "ParameterValue": "t2.large"
+    },
+    {
+        "ParameterKey": "MyIpCidr",
+        "ParameterValue": "101.98.196.67/32"
+    }
+]
