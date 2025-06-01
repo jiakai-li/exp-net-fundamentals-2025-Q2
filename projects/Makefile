@@ -19,7 +19,7 @@ ts := $(shell /bin/date "+%Y-%m-%d-%H-%M-%S")
 		$(if $(PARAMETERS),--parameters $(PARAMETERS)) \
 		--enable-termination-protection \
 		--output text && \
-	aws cloudformation wait stack-create-complete \
+	 aws cloudformation wait stack-create-complete \
 		--stack-name $(STACK_NAME) \
 		--region $(REGION)
 
@@ -32,11 +32,11 @@ ts := $(shell /bin/date "+%Y-%m-%d-%H-%M-%S")
 		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
 		$(if $(PARAMETERS),--parameters $(PARAMETERS)) \
 		--change-set-name Update-$(ts) && \
-	aws cloudformation wait change-set-create-complete \
+	 aws cloudformation wait change-set-create-complete \
 		--change-set-name Update-$(ts) \
 		--stack-name $(STACK_NAME) \
 		--region $(REGION) && \
-	aws cloudformation describe-change-set \
+	 aws cloudformation describe-change-set \
 		--change-set-name Update-$(ts) \
 		--stack-name $(STACK_NAME) \
 		--region $(REGION) \
@@ -57,6 +57,20 @@ ts := $(shell /bin/date "+%Y-%m-%d-%H-%M-%S")
 			--stack-name $(STACK_NAME) \
 			--region $(REGION)
 
+.delete:
+	@echo "Delete stack $(STACK_NAME) in region $(REGION)"
+	@aws cloudformation update-termination-protection \
+		--stack-name $(STACK_NAME) \
+		--region $(REGION) \
+		--no-enable-termination-protection && \
+	 aws cloudformation delete-stack \
+		--stack-name $(STACK_NAME) \
+		--region $(REGION) && \
+	 aws cloudformation wait stack-delete-complete \
+		--stack-name $(STACK_NAME) \
+		--region $(REGION) || \
+	 echo "Stack $(STACK_NAME) deleted";
+
 .process:
 	@make .describe \
 		STACK_NAME=$(STACK_NAME) \
@@ -64,16 +78,25 @@ ts := $(shell /bin/date "+%Y-%m-%d-%H-%M-%S")
 		(make .update \
 			STACK_NAME=$(STACK_NAME) \
 			REGION=$(DEPLOY_REGION) \
-			PARAMETERS=file://vpc.json \
-			TEMPLATE_FILE=file://vpc.yaml 2>&1 | tee /dev/tty | grep -q 'Stack update complete' \
+			PARAMETERS=$(PARAMETERS) \
+			TEMPLATE_FILE=$(TEMPLATE_FILE) 2>&1 | tee /dev/tty | grep -q 'Stack update complete' \
 			|| true) || \
 		make .create \
 			STACK_NAME=$(STACK_NAME) \
 			REGION=$(DEPLOY_REGION) \
-			PARAMETERS=file://vpc.json \
-			TEMPLATE_FILE=file://vpc.yaml
+			PARAMETERS=$(PARAMETERS) \
+			TEMPLATE_FILE=$(TEMPLATE_FILE)
 
 vpc:
 	@make .process \
-		STACK_NAME=$(STACK_NAME) \
-		REGION=$(DEPLOY_REGION)
+		STACK_NAME=$(PROJECT)-vpc \
+		REGION=$(DEPLOY_REGION) \
+		TEMPLATE_FILE=file://week1/vpc/vpc.yaml \
+		PARAMETERS=file://week1/vpc/vpc.json
+
+instances:
+	@make .process \
+		STACK_NAME=$(PROJECT)-instances \
+		REGION=$(DEPLOY_REGION) \
+		TEMPLATE_FILE=file://week1/instances/instances.yaml \
+		PARAMETERS=file://week1/instances/instances.json
