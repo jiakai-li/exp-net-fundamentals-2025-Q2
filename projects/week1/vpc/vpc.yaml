@@ -56,6 +56,22 @@ Resources:
         - Key: Name
           Value: !Sub /${Project}/PrivateSubnet
 
+  NetworkBootcampPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NetworkBootcampVPC
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/PrivateRouteTable
+  
+  NetworkBootcampPrivateRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref NetworkBootcampPrivateSubnet
+      RouteTableId: !Ref NetworkBootcampPrivateRouteTable
+
   NetworkBootcampPublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -85,7 +101,7 @@ Resources:
         - Key: Project
           Value: !Ref Project
         - Key: Name
-          Value: !Sub /${Project}/RouteTable
+          Value: !Sub /${Project}/PublicRouteTable
   
   NetworkBootcampPublicRoute:
     Type: AWS::EC2::Route
