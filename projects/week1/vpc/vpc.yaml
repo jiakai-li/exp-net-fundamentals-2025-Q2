@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: NetworkBootcamp - VPC
+
+Parameters:
+  VpcCidr:
+    Type: String
+  Project:
+    Type: String
+
+Resources:
+  NetworkBootcampVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/VPC
+
+  NetworkBootcampInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/InternetGateway
+
+  NetworkBootcampInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref NetworkBootcampInternetGateway
+      VpcId: !Ref NetworkBootcampVPC
+
+  NetworkBootcampPrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref NetworkBootcampVPC
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs
+          Ref: AWS::Region
+      CidrBlock: !Select
+        - 0
+        - !Cidr
+          - !GetAtt NetworkBootcampVPC.CidrBlock
+          - 2
+          - 7
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/PrivateSubnet
+
+  NetworkBootcampPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref NetworkBootcampVPC
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs
+          Ref: AWS::Region
+      CidrBlock: !Select
+        - 1
+        - !Cidr
+          - !GetAtt NetworkBootcampVPC.CidrBlock
+          - 2
+          - 7
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/PublicSubnet
+
+  NetworkBootcampPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NetworkBootcampVPC
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/RouteTable
+  
+  NetworkBootcampPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - NetworkBootcampInternetGatewayAttachment
+    Properties:
+      GatewayId: !Ref NetworkBootcampInternetGateway
+      RouteTableId: !Ref NetworkBootcampPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+  
+  NetworkBootcampPublicRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref NetworkBootcampPublicSubnet
+      RouteTableId: !Ref NetworkBootcampPublicRouteTable
+
+  OutputVpcId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Description: NetworkBootcamp VPC id
+      Name: !Sub /${Project}/network/vpc/id
+      Value: !Ref NetworkBootcampVPC
+  
+  OutputVpcCidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Description: NetworkBootcamp VPC cidr
+      Name: !Sub /${Project}/network/vpc/cidr
+      Value: !GetAtt NetworkBootcampVPC.CidrBlock
+
+  OutputPrivateSubnetId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Description: NetworkBootcamp private subnet id
+      Name: !Sub /${Project}/network/private/subnet/id
+      Value: !Ref NetworkBootcampPrivateSubnet
+  
+  OutputPrivateSubnetCidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Description: NetworkBootcamp private subnet cidr
+      Name: !Sub /${Project}/network/private/subnet/cidr
+      Value: !GetAtt NetworkBootcampPrivateSubnet.CidrBlock
+
+  OutputPublicSubnetId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Description: NetworkBootcamp public subnet id
+      Name: !Sub /${Project}/network/public/subnet/id
+      Value: !Ref NetworkBootcampPublicSubnet
+
+  OutputPublicSubnetCidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Description: NetworkBootcamp public subnet cidr
+      Name: !Sub /${Project}/network/public/subnet/cidr
+      Value: !GetAtt NetworkBootcampPublicSubnet.CidrBlock

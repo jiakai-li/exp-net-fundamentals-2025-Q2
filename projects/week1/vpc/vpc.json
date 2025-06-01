@@ -1,0 +1,10 @@
+[
+    {
+        "ParameterKey": "VpcCidr",
+        "ParameterValue": "10.200.123.0/24"
+    },
+    {
+        "ParameterKey": "Project",
+        "ParameterValue": "NetworkBootcamp"
+    }
+]
