@@ -70,24 +70,30 @@ Resources:
           Value: !Ref Project
         - Key: Name
           Value: !Sub /${Project}/SecurityGroup/general
+  
+  SecurityGroupGeneralIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow traffic within the security group
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      GroupId: !Ref SecurityGroupGeneral
+      SourceSecurityGroupId: !Ref SecurityGroupGeneral
 
   WindowsEc2Instance:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !Ref WindowsInstanceAmi
       InstanceType: !Ref WindowsInstanceType
+      SubnetId: !Ref PublicSubnetId
+      SecurityGroupIds:
+        - !Ref SecurityGroupGeneral
       AvailabilityZone: !Select
         - 0
         - !GetAZs
           Ref: AWS::Region
       KeyName: !Ref PemKeyPair
-      NetworkInterfaces:
-        - DeleteOnTermination: true
-          AssociatePublicIpAddress: true
-          DeviceIndex: "0"
-          SubnetId: !Ref PublicSubnetId
-          GroupSet:
-            - !Ref SecurityGroupGeneral
       Tags:
         - Key: Project
           Value: !Ref Project
@@ -119,18 +125,14 @@ Resources:
     Properties:
       ImageId: !Ref UbuntuInstanceAmi
       InstanceType: !Ref UbuntuInstanceType
+      SubnetId: !Ref PublicSubnetId
+      SecurityGroupIds:
+        - !Ref SecurityGroupGeneral
       AvailabilityZone: !Select
         - 0
         - !GetAZs
           Ref: AWS::Region
       KeyName: !Ref PemKeyPair
-      NetworkInterfaces:
-        - DeleteOnTermination: true
-          AssociatePublicIpAddress: true
-          DeviceIndex: "0"
-          SubnetId: !Ref PublicSubnetId
-          GroupSet:
-            - !Ref SecurityGroupGeneral
       Tags:
         - Key: Project
           Value: !Ref Project

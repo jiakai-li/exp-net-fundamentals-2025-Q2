@@ -13,7 +13,7 @@
     },
     {
         "ParameterKey": "WindowsInstanceType",
-        "ParameterValue": "t3.xlarge"
+        "ParameterValue": "t3.large"
     },
     {
         "ParameterKey": "UbuntuInstanceType",
