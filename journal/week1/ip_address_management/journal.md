@@ -80,6 +80,7 @@ default via 172.24.208.1 dev eth0 proto kernel
 
 Some points to be noted:
 1. Why the WSL vEthernet has DHCP disabled, and how the DHCP works with WSL2?
+
     - The IP (`172.24.208.1`) is statically assigned by Windows, this is the host side of the vEthernet adapter. Windows configure it as part of creating the network bridge, so there is no DHCP lease request or renewal process
     - The WSL VM gets a private IP via internal DHCP, this is managed within Hyper-V, not by the windows DHCP client
     - As can be seen from the route table of the WSL VM:
@@ -87,4 +88,28 @@ Some points to be noted:
         - when the WSL 2 instance starts, it requests an IP via DHCP on `eth0`
 
 2. How the internet access from WSL VM routed?
+
     As can be seen from the WSL VM route table, all internet-bound traffic also goes through the default gateway `eth0` as well, which seems like the windows side vEthernet `172.24.208.1` is acting as a router/NAT gateway for WSL VM
+
+4. IP conflict using `sudo ip addr add` command and aws subnet ip pool
+
+    I tried to set up an IP conflict using this command, with below setup:
+    - client host: `10.200.123.164`
+    - host A: `10.200.123.169`
+    - host B: `10.200.123.212`
+    
+    and manully configured host A with `10.200.123.212` using the `sudo ip addr add` command, and I noticed below behaviour:
+
+    - Ping `10.200.123.212` works Ok from the client host
+    ![ping-ok](./ping-ok.png)
+
+    - Ping `10.200.123.212` doesn't work from client host if I stop host B
+    ![ping-not-ok](./ping-not-ok.png)
+
+    - Ping `10.200.123.212` works Ok from host A
+    ![self-ping](./self-ping.png)
+
+    - The ARP table in the client host seems to map the ip correctly to host B, while host A doesn't have `10.200.123.212` mapping in its ARP table
+    ![arp-table](./arp-table.png)
+
+    Looks like the manually configured IP address doesn't work outside of the host itself.
