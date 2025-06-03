@@ -16,7 +16,7 @@ Each DHCP has a scope of IP addresses that it can be used to assign to hosts. Th
 
 DHCP message flow:
 
-![dhcp](./dhcp.png)
+![dhcp](./assets/dhcp.png)
 
 ### ARP protocol (address resolution protocol)
 
@@ -24,13 +24,13 @@ Address resolution protocol is used for communications within the same network. 
 
 ARP message flow:
 
-![arp](./arp.png)
+![arp](./assets/arp.png)
 
 ### DNS protocol (domain name system)
 
 DNS resolves a domain name to IP address, which works following the flow in below figure:
 
-![dns](./dns.png)
+![dns](./assets/dns.png)
 
 1. User typing domain name
 2. Local DNS server try to find cached matching record
@@ -101,15 +101,15 @@ Some points to be noted:
     and manully configured host A with `10.200.123.212` using the `sudo ip addr add` command, and I noticed below behaviour:
 
     - Ping `10.200.123.212` works Ok from the client host
-    ![ping-ok](./ping-ok.png)
+    ![ping-ok](./assets/ping-ok.png)
 
     - Ping `10.200.123.212` doesn't work from client host if I stop host B
-    ![ping-not-ok](./ping-not-ok.png)
+    ![ping-not-ok](./assets/ping-not-ok.png)
 
     - Ping `10.200.123.212` works Ok from host A
-    ![self-ping](./self-ping.png)
+    ![self-ping](./assets/self-ping.png)
 
     - The ARP table in the client host seems to map the ip correctly to host B, while host A doesn't have `10.200.123.212` mapping in its ARP table
-    ![arp-table](./arp-table.png)
+    ![arp-table](./assets/arp-table.png)
 
     Looks like the manually configured IP address doesn't work outside of the host itself.

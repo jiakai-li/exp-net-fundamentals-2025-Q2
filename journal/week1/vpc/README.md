@@ -28,10 +28,10 @@ The CloudFormation template file is created to facilitate repeatable deployment 
     - Attach the public route table with the public subnet
 
 After deployment, you should have the instances stack created:
-![cfn_stack](./cloudformation_stack.png)
+![cfn_stack](./assets/cloudformation_stack.png)
 
 ## VPC resource map
-![vpc_resource_map](./vpc_resource_map.png)
+![vpc_resource_map](./assets/vpc_resource_map.png)
 
 # Things learned
 
