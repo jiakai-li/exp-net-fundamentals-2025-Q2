@@ -24,10 +24,10 @@
   - Two private NICs attached to windows and ubuntu machine
 
 After deployment, you should have the instances stack created:
-![cfn_stack](./cloudformation_stack.png)
+![cfn_stack](./assets/cloudformation_stack.png)
 
 ## Instances resource map
-![instances_resource_map](./instances_resource_map.png)
+![instances_resource_map](./assets/instances_resource_map.png)
 
 # Things learned
 
