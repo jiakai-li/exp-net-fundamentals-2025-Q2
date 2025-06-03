@@ -69,7 +69,7 @@ Resources:
         - Key: Project
           Value: !Ref Project
         - Key: Name
-          Value: !Sub /${Project}/SecurityGroup/general
+          Value: !Sub /${Project}/GeneralSecurityGroup
   
   SecurityGroupGeneralIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -86,7 +86,7 @@ Resources:
     Properties:
       ImageId: !Ref WindowsInstanceAmi
       InstanceType: !Ref WindowsInstanceType
-      SubnetId: !Ref PublicSubnetId
+      SubnetId: !Ref PrivateSubnetId
       SecurityGroupIds:
         - !Ref SecurityGroupGeneral
       AvailabilityZone: !Select
@@ -100,32 +100,47 @@ Resources:
         - Key: Name
           Value: !Sub /${Project}/WindowsInstance
 
-  WindowsPrivateNic:
+  WindowsPublicNic:
     Type: AWS::EC2::NetworkInterface
     Properties:
       GroupSet:
         - !Ref SecurityGroupGeneral
-      SubnetId: !Ref PrivateSubnetId
+      SubnetId: !Ref PublicSubnetId
       Tags:
         - Key: Project
           Value: !Ref Project
         - Key: Name
-          Value: !Sub /${Project}/Nic/WindowsInstancePrivate
+          Value: !Sub /${Project}/WindowsPublicNIC
   
-  WindowsPrivateNicAttachment:
+  WindowsEc2EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/WindowsEIP
+
+  WindowsEc2EIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt WindowsEc2EIP.AllocationId
+      NetworkInterfaceId: !Ref WindowsPublicNic
+  
+  WindowsPublicNicAttachment:
     Type: AWS::EC2::NetworkInterfaceAttachment
     Properties:
       DeviceIndex: "1"
       DeleteOnTermination: true
       InstanceId: !Ref WindowsEc2Instance
-      NetworkInterfaceId: !Ref WindowsPrivateNic
+      NetworkInterfaceId: !Ref WindowsPublicNic
   
   UbuntuEc2Instance:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !Ref UbuntuInstanceAmi
       InstanceType: !Ref UbuntuInstanceType
-      SubnetId: !Ref PublicSubnetId
+      SubnetId: !Ref PrivateSubnetId
       SecurityGroupIds:
         - !Ref SecurityGroupGeneral
       AvailabilityZone: !Select
@@ -139,22 +154,37 @@ Resources:
         - Key: Name
           Value: !Sub /${Project}/UbuntuInstance
 
-  UbuntuPrivateNic:
+  UbuntuPublicNic:
     Type: AWS::EC2::NetworkInterface
     Properties:
       GroupSet:
         - !Ref SecurityGroupGeneral
-      SubnetId: !Ref PrivateSubnetId
+      SubnetId: !Ref PublicSubnetId
       Tags:
         - Key: Project
           Value: !Ref Project
         - Key: Name
-          Value: !Sub /${Project}/Nic/UbuntuInstancePrivate
+          Value: !Sub /${Project}/UbuntuPublicNIC
 
-  UbuntuPrivateNicAttachment:
+  UbuntuEc2EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Name
+          Value: !Sub /${Project}/UbuntuEIP
+
+  UbuntuEc2EIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt UbuntuEc2EIP.AllocationId
+      NetworkInterfaceId: !Ref UbuntuPublicNic
+
+  UbuntuPublicNicAttachment:
     Type: AWS::EC2::NetworkInterfaceAttachment
     Properties:
       DeviceIndex: "1"
       DeleteOnTermination: true
       InstanceId: !Ref UbuntuEc2Instance
-      NetworkInterfaceId: !Ref UbuntuPrivateNic
+      NetworkInterfaceId: !Ref UbuntuPublicNic
